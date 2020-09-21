@@ -45,6 +45,7 @@ Getopt::Long::GetOptions(
     "testsocket=s",
     "cflags=s",
     "libs=s",
+    "rpath=s",			 
     "verbose",
     "ps-protocol",
     "bind-type-guessing",
@@ -102,6 +103,11 @@ for my $key (qw/testdb testhost testuser testpassword testsocket testport
                     ps-protocol bind-type-guessing force-embedded/)
 {
   Configure($opt, $source, $key);
+}
+
+if ($opt->{rpath})
+{
+  $opt->{ldflags} = join(" ", $opt->{ldflags}, "-rpath", $opt->{rpath});
 }
 
 #if we have a testport but no host, assume localhost
@@ -208,6 +214,8 @@ MSG
 print "Checking if libs are available for compiling...\n";
 
 assert_lib(
+  ldflags => $opt->{ldflags},
+debug => 1,
   LIBS => ($opt->{'embedded'} ? $opt->{'embedded'} : $opt->{libs}),
 );
 
@@ -250,6 +258,7 @@ if ($^O eq 'VMS') {
 $cflags .= " -DDBD_MYSQL_WITH_SSL" if !$opt->{'nossl'};
 $cflags .= " -DDBD_MYSQL_NO_CLIENT_FOUND_ROWS" if $opt->{'nofoundrows'};
 $cflags .= " -g ";
+
 my %o = ( 'NAME' => 'DBD::mysql',
 	      'INC' => $cflags,
 	      'dist'=> { 'SUFFIX'       => ".gz",
